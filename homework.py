@@ -1,4 +1,3 @@
-
 import logging
 import os
 import time
@@ -36,7 +35,6 @@ logging.basicConfig(
 
 def check_tokens():
     """Проверяет доступность переменных окружения."""
-
     if not PRACTICUM_TOKEN:
         logging.critical('Отсутствует токен PRACTICUM_TOKEN')
         return False
@@ -118,7 +116,7 @@ def check_response(response):
 
 def parse_status(homework):
     """
-    Извлекает из информации о 
+    Извлекает из информации о
     конкретной домашней работе статус этой работы.
     """
     try:
@@ -144,7 +142,6 @@ def parse_status(homework):
 
 def main():
     """Основная логика работы бота."""
-
     if not check_tokens():
         logging.critical('Отсутствуют необходимые токены')
         return
