@@ -115,9 +115,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """
-    Извлекает из информации о конкретной домашней работе статус этой работы.
-    """
+    """Извлекает статус домашней работы из информации о ней."""
     try:
         homework_name = homework['homework_name']
     except KeyError:
