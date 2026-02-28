@@ -38,14 +38,16 @@ logger.addHandler(stream_handler)
 
 def check_tokens():
     """Проверяет доступность переменных окружения."""
-    missing_tokens = []
+    tokens = {
+        'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
+        'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
+        'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID
+    }
 
-    if not PRACTICUM_TOKEN:
-        missing_tokens.append('PRACTICUM_TOKEN')
-    if not TELEGRAM_TOKEN:
-        missing_tokens.append('TELEGRAM_TOKEN')
-    if not TELEGRAM_CHAT_ID:
-        missing_tokens.append('TELEGRAM_CHAT_ID')
+    missing_tokens = [
+        name for name, value in tokens.items()
+        if not value
+    ]
 
     if missing_tokens:
         logger.critical(f'Отсутствуют необходимые токены: {missing_tokens}')
@@ -75,11 +77,12 @@ def get_api_answer(timestamp):
     Если запрос к API-сервису прошел успешно, должен вернуть ответ API,
     преобразовав его из формата JSON к типам данных Python.
     """
+    payload = {'from_date': int(timestamp)}
     try:
         response = requests.get(
             ENDPOINT,
             headers=HEADERS,
-            params={'from_date': int(timestamp)}
+            params=payload
         )
 
     except requests.RequestException as error:
@@ -87,7 +90,7 @@ def get_api_answer(timestamp):
             f'Ошибка при запросе к API: {error}'
             f' по адресу: {ENDPOINT}'
             f' c заголовками: {HEADERS}'
-            f' и параметрами: {{"from_date": {timestamp}}}'
+            f' и параметрами: {payload}'
         )
 
     if response.status_code != HTTPStatus.OK:
@@ -149,8 +152,6 @@ def main():
 
     last_status = None
 
-    last_error_message = None
-
     while True:
         try:
             response = get_api_answer(timestamp)
@@ -161,9 +162,9 @@ def main():
                 message = parse_status(response['homeworks'][0])
 
                 if message != last_status:
-                    send_message(bot, message)
-                    last_status = message
-                    logger.debug(f'Отправлено сообщение: {message}')
+                    if send_message(bot, message):
+                        last_status = message
+                        logger.debug(f'Отправлено сообщение: {message}')
                 else:
                     logger.debug('Статус домашней работы не изменился')
 
@@ -174,10 +175,10 @@ def main():
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            if message != last_error_message:
-                send_message(bot, message)
-                last_error_message = message
-                logger.error(message)
+            if message != last_status:
+                if send_message(bot, message):
+                    last_status = message
+                    logger.error(message)
 
         time.sleep(RETRY_PERIOD)
 
