@@ -140,6 +140,16 @@ def parse_status(homework):
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
+def handle_main_error(error, bot, last_status):
+    """Обрабатывает ошибки в основном цикле."""
+    message = f'Сбой в работе программы: {error}'
+    if message != last_status:
+        if send_message(bot, message):
+            last_status = message
+            logger.error(message)
+    return last_status
+
+
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
@@ -174,11 +184,7 @@ def main():
             timestamp = response.get('current_date', timestamp)
 
         except Exception as error:
-            message = f'Сбой в работе программы: {error}'
-            if message != last_status:
-                if send_message(bot, message):
-                    last_status = message
-                    logger.error(message)
+            last_status = handle_main_error(error, bot, last_status)
 
         time.sleep(RETRY_PERIOD)
 
