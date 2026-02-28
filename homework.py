@@ -3,7 +3,7 @@ import logging
 import os
 import time
 
-import requests 
+import requests
 from dotenv import load_dotenv
 from telebot import TeleBot, apihelper
 
